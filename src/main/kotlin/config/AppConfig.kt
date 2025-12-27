@@ -1,0 +1,15 @@
+package com.mapme.config
+
+object AppConfig {
+
+    // S2 Grid Settings
+    object S2 {
+        const val DEFAULT_CELL_LEVEL = 13
+    }
+
+    // Photo Settings
+    object Photos {
+        const val MAX_FILE_SIZE_MB = 10
+        const val THUMBNAIL_SIZE = 256
+    }
+}

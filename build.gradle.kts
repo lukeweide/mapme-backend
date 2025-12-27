@@ -37,4 +37,8 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("org.postgresql:postgresql:42.7.7")
     implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation("com.google.guava:guava:33.0.0-jre")
+    implementation("io.ktor:ktor-server-partial-content")
+    implementation("io.ktor:ktor-server-auto-head-response")
 }
