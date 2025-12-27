@@ -1,6 +1,6 @@
 package com.mapme
 
-import com.mapme.plugins.configureDatabases
+import com.mapme.data.database.DatabaseFactory
 import com.mapme.plugins.configureHTTP
 import com.mapme.plugins.configureMonitoring
 import com.mapme.plugins.configureRouting
@@ -13,8 +13,8 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    DatabaseFactory.init()
     configureSerialization()
-    configureDatabases()
     configureMonitoring()
     configureHTTP()
     configureSecurity()

@@ -1,5 +1,8 @@
 package com.mapme.plugins
 
+import com.mapme.data.repositories.UserRepository
+import com.mapme.routes.healthRoutes
+import com.mapme.routes.userRoutes
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
@@ -16,7 +19,13 @@ fun Application.configureRouting() {
             call.respondText(text = "500: $cause", status = HttpStatusCode.InternalServerError)
         }
     }
+
+    val userRepository = UserRepository()
+
     routing {
+        healthRoutes()
+        userRoutes(userRepository)
+
         get("/") {
             call.respondText("Hello World!")
         }
