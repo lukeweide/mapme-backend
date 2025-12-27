@@ -1,0 +1,38 @@
+<configuration>
+    <!-- Console Output -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File Output -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/mapme-backend.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/mapme-backend.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root Logger -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!-- Application Logger -->
+    <logger name="com.mapme" level="DEBUG"/>
+
+    <!-- Ktor Framework -->
+    <logger name="io.ktor" level="INFO"/>
+
+    <!-- Database -->
+    <logger name="Exposed" level="INFO"/>
+
+    <!-- Netty (HTTP Server) -->
+    <logger name="io.netty" level="INFO"/>
+</configuration>

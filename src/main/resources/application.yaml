@@ -1,0 +1,6 @@
+ktor:
+  application:
+    modules:
+      - com.mapme.ApplicationKt.module
+  deployment:
+    port: ${?PORT}
