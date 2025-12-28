@@ -3,6 +3,7 @@ package com.mapme.plugins
 import data.repositories.PhotoRepository
 import com.mapme.data.repositories.UserRepository
 import com.mapme.data.services.S2Service
+import com.mapme.data.services.ThumbnailService
 import routes.gridRoutes
 import com.mapme.routes.healthRoutes
 import com.mapme.routes.photoRoutes
@@ -31,11 +32,12 @@ fun Application.configureRouting() {
     val visitedCellsRepository = VisitedCellsRepository()
 
     val s2Service = S2Service()
+    val thumbnailService = ThumbnailService()
 
     routing {
         healthRoutes()
         userRoutes(userRepository, visitedCellsRepository)
-        photoRoutes(photoRepository, s2Service)
+        photoRoutes(photoRepository, s2Service, thumbnailService)
         gridRoutes(s2Service)
         visitedCellsRoutes(visitedCellsRepository, s2Service)
 

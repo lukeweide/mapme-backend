@@ -39,6 +39,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:6.2.1")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     implementation("com.google.guava:guava:33.0.0-jre")
+    implementation("net.coobird:thumbnailator:0.4.20")
     implementation("io.ktor:ktor-server-partial-content")
     implementation("io.ktor:ktor-server-auto-head-response")
 }

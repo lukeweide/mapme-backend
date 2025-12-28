@@ -1,7 +1,9 @@
 package com.mapme.routes
 
+import com.mapme.config.AppConfig
 import data.repositories.PhotoRepository
 import com.mapme.data.services.S2Service
+import com.mapme.data.services.ThumbnailService
 import com.mapme.domain.models.CreatePhotoRequest
 import com.mapme.domain.models.PhotoMarkerResponse
 import com.mapme.domain.models.PhotoResponse
@@ -17,7 +19,8 @@ import java.util.*
 
 fun Route.photoRoutes(
     photoRepository: PhotoRepository,
-    s2Service: S2Service
+    s2Service: S2Service,
+    thumbnailService: ThumbnailService
 ) {
 
     route("/api/v1/photos") {
@@ -156,6 +159,35 @@ fun Route.photoRoutes(
             }
 
             call.respond(HttpStatusCode.NoContent)
+        }
+
+        // GET /api/v1/photos/{id}/thumbnail - Get Photo Thumbnail
+        get("/{id}/thumbnail") {
+            val photoId = call.parameters["id"]?.let { UUID.fromString(it) }
+                ?: return@get call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid ID"))
+
+            val size = call.request.queryParameters["size"]?.toIntOrNull()
+                ?: AppConfig.Photos.THUMBNAIL_SIZE
+
+            val photo = photoRepository.findById(photoId)
+            if (photo == null) {
+                call.respond(HttpStatusCode.NotFound, mapOf("error" to "Photo not found"))
+                return@get
+            }
+
+            val photoFile = File(photo.filePath)
+            if (!photoFile.exists()) {
+                call.respond(HttpStatusCode.NotFound, mapOf("error" to "Photo file not found"))
+                return@get
+            }
+
+            val thumbnailFile = thumbnailService.getThumbnail(photoFile, size)
+            if (thumbnailFile == null || !thumbnailFile.exists()) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to generate thumbnail"))
+                return@get
+            }
+
+            call.respondFile(thumbnailFile)
         }
     }
 }
