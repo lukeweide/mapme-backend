@@ -1,17 +1,15 @@
 package com.mapme.routes
 
-import com.mapme.data.repositories.PhotoRepository
+import data.repositories.PhotoRepository
 import com.mapme.data.services.S2Service
 import com.mapme.domain.models.CreatePhotoRequest
 import com.mapme.domain.models.PhotoMarkerResponse
 import com.mapme.domain.models.PhotoResponse
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.*                      // ← NEU!
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.datetime.Instant
 import java.io.File

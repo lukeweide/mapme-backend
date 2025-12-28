@@ -4,6 +4,7 @@ import com.mapme.domain.models.CreateUserRequest
 import com.mapme.domain.models.UserResponse
 import com.mapme.domain.models.UserStatsResponse
 import com.mapme.data.repositories.UserRepository
+import data.repositories.VisitedCellsRepository
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -11,7 +12,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import java.util.UUID
 
-fun Route.userRoutes(userRepository: UserRepository) {
+fun Route.userRoutes(
+    userRepository: UserRepository,
+    visitedCellsRepository: VisitedCellsRepository
+) {
 
     route("/api/v1/users") {
 
@@ -62,13 +66,17 @@ fun Route.userRoutes(userRepository: UserRepository) {
 
         // GET /api/v1/users/me/stats - Get User Statistics
         get("/me/stats") {
-            // TODO: Implement real stats from DB
+            // TODO: Get userId from JWT/Session (hardcoded für jetzt)
+            val userId = UUID.fromString("d8f9959c-0ab8-44aa-ad10-f03ae2764fde")
+
+            val stats = visitedCellsRepository.getUserStats(userId)
+
             call.respond(
                 UserStatsResponse(
-                    totalCells = 0,
-                    totalPhotos = 0,
-                    countries = 0,
-                    cities = 0
+                    totalCells = stats["totalCells"] ?: 0,
+                    totalPhotos = stats["totalPhotos"] ?: 0,
+                    countries = 0,  // TODO: Implement later
+                    cities = 0      // TODO: Implement later
                 )
             )
         }

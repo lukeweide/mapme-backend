@@ -39,7 +39,6 @@ out/
 .env
 
 # Data
-data/
 uploads/
 thumbnails/
 

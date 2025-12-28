@@ -1,11 +1,14 @@
 package com.mapme.plugins
 
-import com.mapme.data.repositories.PhotoRepository
+import data.repositories.PhotoRepository
 import com.mapme.data.repositories.UserRepository
 import com.mapme.data.services.S2Service
+import routes.gridRoutes
 import com.mapme.routes.healthRoutes
 import com.mapme.routes.photoRoutes
 import com.mapme.routes.userRoutes
+import com.mapme.routes.visitedCellsRoutes
+import data.repositories.VisitedCellsRepository
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.application.*
@@ -25,12 +28,16 @@ fun Application.configureRouting() {
 
     val userRepository = UserRepository()
     val photoRepository = PhotoRepository()
+    val visitedCellsRepository = VisitedCellsRepository()
+
     val s2Service = S2Service()
 
     routing {
         healthRoutes()
-        userRoutes(userRepository)
+        userRoutes(userRepository, visitedCellsRepository)
         photoRoutes(photoRepository, s2Service)
+        gridRoutes(s2Service)
+        visitedCellsRoutes(visitedCellsRepository, s2Service)
 
         get("/") {
             call.respondText("Hello World!")

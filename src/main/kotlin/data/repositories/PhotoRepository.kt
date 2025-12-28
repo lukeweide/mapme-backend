@@ -1,10 +1,11 @@
-package com.mapme.data.repositories
+package data.repositories
 
 import com.mapme.data.database.DatabaseFactory.dbQuery
 import com.mapme.data.database.tables.Photos
 import com.mapme.data.database.tables.VisitedCells
 import com.mapme.domain.models.Photo
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.util.*
@@ -23,7 +24,7 @@ class PhotoRepository {
         s2CellId: Long,
         cameraMake: String?,
         cameraModel: String?,
-        takenAt: kotlinx.datetime.Instant?
+        takenAt: Instant?
     ): Photo = dbQuery {
         val id = UUID.randomUUID()
 
