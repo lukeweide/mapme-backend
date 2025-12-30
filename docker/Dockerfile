@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle.properties ./
+COPY libs ./libs
 COPY src ./src
 
 RUN gradle buildFatJar --no-daemon
