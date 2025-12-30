@@ -1,0 +1,802 @@
+openapi: 3.0.0
+info:
+  title: MapMe API
+  version: 1.0.0
+  description: API for MapMe - Gamified Photo Mapping App
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Check API and database connection status
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /api/v1/users:
+    post:
+      summary: Create new user
+      description: Register a new user account
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/me:
+    get:
+      summary: Get current user profile
+      description: Get authenticated user's profile information
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/me/stats:
+    get:
+      summary: Get user statistics
+      description: Get statistics about visited cells, photos, countries, and cities
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User statistics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatsResponse'
+
+  /api/v1/photos:
+    post:
+      summary: Upload photo with GPS metadata
+      description: Upload a photo file with EXIF metadata (multipart/form-data)
+      tags:
+        - Photos
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - metadata
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Photo file (JPEG)
+                metadata:
+                  type: string
+                  description: JSON string containing CreatePhotoRequest
+                  example: '{"latitude":48.8566,"longitude":2.3522,"cameraMake":"Apple","cameraModel":"iPhone 14 Pro","takenAt":1703001234567}'
+      responses:
+        '201':
+          description: Photo uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
+        '400':
+          description: Missing file or metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/photos/{id}:
+    get:
+      summary: Get photo details by ID
+      description: Retrieve photo metadata by photo ID
+      tags:
+        - Photos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Photo ID
+      responses:
+        '200':
+          description: Photo details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoResponse'
+        '400':
+          description: Invalid photo ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Photo not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete photo by ID
+      description: Delete a photo and its associated data
+      tags:
+        - Photos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Photo ID
+      responses:
+        '204':
+          description: Photo deleted successfully
+        '400':
+          description: Invalid photo ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Photo not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/photos/markers:
+    get:
+      summary: Get photo markers in viewport
+      description: Retrieve photo markers (with thumbnails) within a bounding box
+      tags:
+        - Photos
+      parameters:
+        - name: minLat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 48.8
+        - name: maxLat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 48.9
+        - name: minLon
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 2.2
+        - name: maxLon
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 2.4
+      responses:
+        '200':
+          description: Photo markers retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhotoMarkerResponse'
+        '400':
+          description: Missing bounds parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/photos/{id}/thumbnail:
+    get:
+      summary: Get photo thumbnail
+      description: Retrieve thumbnail image for a photo
+      tags:
+        - Photos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Photo ID
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 256
+          description: Thumbnail size in pixels
+          example: 256
+      responses:
+        '200':
+          description: Thumbnail image
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid photo ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Photo or file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Failed to generate thumbnail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/grid/tiles:
+    get:
+      summary: Get S2 grid tiles in viewport
+      description: Retrieve S2 grid cells as GeoJSON within a bounding box
+      tags:
+        - Grid
+      parameters:
+        - name: minLat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 48.8
+        - name: maxLat
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 48.9
+        - name: minLon
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 2.2
+        - name: maxLon
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+          example: 2.4
+        - name: level
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 13
+          description: S2 cell level (default 13)
+          example: 13
+      responses:
+        '200':
+          description: Grid tiles as GeoJSON FeatureCollection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GridTilesResponse'
+        '400':
+          description: Missing bounds parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/grid/cells/{cellId}:
+    get:
+      summary: Get S2 cell details
+      description: Retrieve center point and boundary for a specific S2 cell
+      tags:
+        - Grid
+      parameters:
+        - name: cellId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: S2 Cell ID
+          example: 1234567890123456789
+      responses:
+        '200':
+          description: Cell details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CellDetailsResponse'
+        '400':
+          description: Invalid cell ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/me/visited-cells:
+    get:
+      summary: Get visited cells as GeoJSON
+      description: Retrieve user's visited S2 cells with photo counts, optionally filtered by viewport
+      tags:
+        - Visited Cells
+      parameters:
+        - name: minLat
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 48.8
+        - name: maxLat
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 48.9
+        - name: minLon
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 2.2
+        - name: maxLon
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 2.4
+      responses:
+        '200':
+          description: Visited cells as GeoJSON FeatureCollection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitedCellsResponse'
+
+  /api/v1/users/me/heatmap:
+    get:
+      summary: Get heatmap (alias for visited-cells)
+      description: Backward compatibility alias for visited-cells endpoint
+      tags:
+        - Visited Cells
+      parameters:
+        - name: minLat
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 48.8
+        - name: maxLat
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 48.9
+        - name: minLon
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 2.2
+        - name: maxLon
+          in: query
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 2.4
+      responses:
+        '200':
+          description: Heatmap as GeoJSON FeatureCollection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitedCellsResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - database
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+          example: ok
+        database:
+          type: string
+          enum: [connected, disconnected]
+          example: connected
+        timestamp:
+          type: integer
+          format: int64
+          example: 1703001234567
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - email
+      properties:
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - username
+        - email
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d8f9959c-0ab8-44aa-ad10-f03ae2764fde
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          example: john@example.com
+        createdAt:
+          type: integer
+          format: int64
+          example: 1703001234567
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: Email already exists
+
+    UserStatsResponse:
+      type: object
+      required:
+        - totalCells
+        - totalPhotos
+        - countries
+        - cities
+      properties:
+        totalCells:
+          type: integer
+          example: 42
+        totalPhotos:
+          type: integer
+          example: 128
+        countries:
+          type: integer
+          example: 0
+        cities:
+          type: integer
+          example: 0
+
+    PhotoResponse:
+      type: object
+      required:
+        - id
+        - userId
+        - filePath
+        - latitude
+        - longitude
+        - s2CellId
+        - uploadedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        userId:
+          type: string
+          format: uuid
+          example: d8f9959c-0ab8-44aa-ad10-f03ae2764fde
+        filePath:
+          type: string
+          example: /data/uploads/abc123.jpg
+        thumbnailPath:
+          type: string
+          nullable: true
+          example: /data/thumbnails/abc123_256.jpg
+        latitude:
+          type: number
+          format: double
+          example: 48.8566
+        longitude:
+          type: number
+          format: double
+          example: 2.3522
+        s2CellId:
+          type: integer
+          format: int64
+          example: 1234567890123456789
+        cameraMake:
+          type: string
+          nullable: true
+          example: Apple
+        cameraModel:
+          type: string
+          nullable: true
+          example: iPhone 14 Pro
+        takenAt:
+          type: integer
+          format: int64
+          nullable: true
+          example: 1703001234567
+        uploadedAt:
+          type: integer
+          format: int64
+          example: 1703005678901
+
+    PhotoMarkerResponse:
+      type: object
+      required:
+        - id
+        - latitude
+        - longitude
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        latitude:
+          type: number
+          format: double
+          example: 48.8566
+        longitude:
+          type: number
+          format: double
+          example: 2.3522
+        thumbnailUrl:
+          type: string
+          nullable: true
+          example: /api/v1/photos/a1b2c3d4-e5f6-7890-abcd-ef1234567890/thumbnail
+
+    GridTilesResponse:
+      type: object
+      required:
+        - type
+        - features
+      properties:
+        type:
+          type: string
+          enum: [ FeatureCollection ]
+          example: FeatureCollection
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/GridFeature'
+
+    GridFeature:
+      type: object
+      required:
+        - type
+        - geometry
+        - properties
+      properties:
+        type:
+          type: string
+          enum: [ Feature ]
+          example: Feature
+        geometry:
+          $ref: '#/components/schemas/GridGeometry'
+        properties:
+          $ref: '#/components/schemas/GridProperties'
+
+    GridGeometry:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type:
+          type: string
+          enum: [ Polygon ]
+          example: Polygon
+        coordinates:
+          type: array
+          description: GeoJSON Polygon coordinates [[[lon, lat], [lon, lat], ...]]
+          items:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+                format: double
+          example: [ [ [ 2.3522, 48.8566 ], [ 2.3523, 48.8566 ], [ 2.3523, 48.8567 ], [ 2.3522, 48.8567 ], [ 2.3522, 48.8566 ] ] ]
+
+    GridProperties:
+      type: object
+      required:
+        - cellId
+      properties:
+        cellId:
+          type: integer
+          format: int64
+          example: 1234567890123456789
+
+    CellDetailsResponse:
+      type: object
+      required:
+        - cellId
+        - center
+        - boundary
+      properties:
+        cellId:
+          type: integer
+          format: int64
+          example: 1234567890123456789
+        center:
+          $ref: '#/components/schemas/CenterPoint'
+        boundary:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+
+    CenterPoint:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          example: 48.8566
+        longitude:
+          type: number
+          format: double
+          example: 2.3522
+
+    Point:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          example: 48.8566
+        longitude:
+          type: number
+          format: double
+          example: 2.3522
+
+    VisitedCellsResponse:
+      type: object
+      required:
+        - type
+        - features
+      properties:
+        type:
+          type: string
+          enum: [ FeatureCollection ]
+          example: FeatureCollection
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/VisitedCellFeature'
+
+    VisitedCellFeature:
+      type: object
+      required:
+        - type
+        - geometry
+        - properties
+      properties:
+        type:
+          type: string
+          enum: [ Feature ]
+          example: Feature
+        geometry:
+          $ref: '#/components/schemas/GridGeometry'
+        properties:
+          $ref: '#/components/schemas/VisitedCellProperties'
+
+    VisitedCellProperties:
+      type: object
+      required:
+        - cellId
+        - photoCount
+        - firstVisitedAt
+        - lastVisitedAt
+      properties:
+        cellId:
+          type: integer
+          format: int64
+          example: 1234567890123456789
+        photoCount:
+          type: integer
+          example: 5
+        firstVisitedAt:
+          type: integer
+          format: int64
+          example: 1703001234567
+        lastVisitedAt:
+          type: integer
+          format: int64
+          example: 1703005678901

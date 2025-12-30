@@ -42,4 +42,6 @@ dependencies {
     implementation("net.coobird:thumbnailator:0.4.20")
     implementation("io.ktor:ktor-server-partial-content")
     implementation("io.ktor:ktor-server-auto-head-response")
+    implementation("io.ktor:ktor-server-openapi:3.0.3")
+    implementation("io.ktor:ktor-server-swagger:3.0.3")
 }

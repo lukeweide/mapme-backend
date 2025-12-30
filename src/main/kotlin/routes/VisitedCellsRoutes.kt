@@ -46,7 +46,11 @@ fun Route.visitedCellsRoutes(
                 )
 
                 VisitedCellFeature(
-                    geometry = GridGeometry(coordinates = coordinates),
+                    type = "Feature",
+                    geometry = GridGeometry(
+                        type = "Polygon",
+                        coordinates = coordinates
+                    ),
                     properties = VisitedCellProperties(
                         cellId = cell.s2CellId,
                         photoCount = cell.photoCount,
@@ -56,7 +60,12 @@ fun Route.visitedCellsRoutes(
                 )
             }
 
-            call.respond(VisitedCellsResponse(features = features))
+            call.respond(
+                VisitedCellsResponse(
+                    type = "FeatureCollection",
+                    features = features
+                )
+            )
         }
 
         // GET /api/v1/users/me/heatmap - Alias for visited-cells (backward compatibility)
@@ -84,7 +93,11 @@ fun Route.visitedCellsRoutes(
                 )
 
                 VisitedCellFeature(
-                    geometry = GridGeometry(coordinates = coordinates),
+                    type = "Feature",
+                    geometry = GridGeometry(
+                        type = "Polygon",
+                        coordinates = coordinates
+                    ),
                     properties = VisitedCellProperties(
                         cellId = cell.s2CellId,
                         photoCount = cell.photoCount,
@@ -94,7 +107,12 @@ fun Route.visitedCellsRoutes(
                 )
             }
 
-            call.respond(VisitedCellsResponse(features = features))
+            call.respond(
+                VisitedCellsResponse(
+                    type = "FeatureCollection",
+                    features = features
+                )
+            )
         }
     }
 }

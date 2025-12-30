@@ -4,7 +4,7 @@ object AppConfig {
 
     // S2 Grid Settings
     object S2 {
-        const val CELL_LEVEL = 13
+        const val CELL_LEVEL = 10
     }
 
     // Photo Settings

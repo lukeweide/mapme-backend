@@ -5,13 +5,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class VisitedCellsResponse(
-    val type: String = "FeatureCollection",
+    val type: String,
     val features: List<VisitedCellFeature>
 )
 
 @Serializable
 data class VisitedCellFeature(
-    val type: String = "Feature",
+    val type: String,
     val geometry: GridGeometry,
     val properties: VisitedCellProperties
 )

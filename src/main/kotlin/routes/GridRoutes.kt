@@ -2,6 +2,7 @@ package routes
 
 import com.mapme.config.AppConfig
 import com.mapme.data.services.S2Service
+import com.mapme.domain.models.VisitedCellsResponse
 import domain.models.CellDetailsResponse
 import domain.models.CenterPoint
 import domain.models.GridFeature
@@ -42,12 +43,21 @@ fun Route.gridRoutes(s2Service: S2Service) {
                 )
 
                 GridFeature(
-                    geometry = GridGeometry(coordinates = coordinates),
+                    type = "Feature",
+                    geometry = GridGeometry(
+                        type = "Polygon",
+                        coordinates = coordinates
+                    ),
                     properties = GridProperties(cellId = cellId)
                 )
             }
 
-            call.respond(GridTilesResponse(features = features))
+            call.respond(
+                GridTilesResponse(
+                    type = "FeatureCollection",
+                    features = features
+                )
+            )
         }
 
         // GET /api/v1/grid/cells/{cellId} - Get cell details
